@@ -2,7 +2,7 @@
 using System.Windows.Media;
 using SudokuApp.Models;
 
-namespace SudokuApp.Rendering
+namespace SudokuApp.Renders
 {
     /// <summary>
     /// Контракт для відображення клітинки судоку в UI.

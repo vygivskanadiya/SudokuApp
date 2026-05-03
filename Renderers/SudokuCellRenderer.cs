@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using SudokuApp.Models;
 
-namespace SudokuApp.Rendering
+namespace SudokuApp.Renders
 {
     /// <summary>
     /// Конкретна реалізація ICellRenderer для WPF-відображення клітинок судоку.

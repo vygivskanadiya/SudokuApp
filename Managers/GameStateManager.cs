@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SudokuApp.Game
+namespace SudokuApp.Managers
 {
     /// <summary>
     /// Керує станом ігрової сесії: помилки, підказки, ходи гравця.

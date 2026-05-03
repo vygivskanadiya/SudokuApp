@@ -8,10 +8,11 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using SudokuApp.Analyzers;
-using SudokuApp.Game;
 using SudokuApp.Generators;
+using SudokuApp.Managers;
 using SudokuApp.Models;
 using SudokuApp.Rendering;
+using SudokuApp.Renders;
 using SudokuApp.Solvers;
 
 namespace SudokuApp
