@@ -1,0 +1,265 @@
+<Window x:Class="SudokuApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Класичне Судоку — КПІ"
+        Width="540" Height="860"
+        MinWidth="500" MinHeight="820"
+        Background="#FFF0F5"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI"
+        ResizeMode="CanMinimize">
+
+    <Window.Resources>
+        <Style x:Key="PinkHoverBtn" TargetType="Button">
+            <Setter Property="Background" Value="#FF8DA1"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="BtnBorder" Background="{TemplateBinding Background}" CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="BtnBorder" Property="Background" Value="#E91E63"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DarkPinkHoverBtn" TargetType="Button">
+            <Setter Property="Background" Value="#D81B60"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="12,9"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="BtnBorder" Background="{TemplateBinding Background}" CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="BtnBorder" Property="Background" Value="#650031"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModeRadio" TargetType="RadioButton">
+            <Setter Property="Margin" Value="0,0,6,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Border" Background="#FCE4EC" Padding="12,6" CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#D81B60"/>
+                                <Setter Property="TextElement.Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="False">
+                                <Setter Property="TextElement.Foreground" Value="#880E4F"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="AlgoRadio" TargetType="RadioButton" BasedOn="{StaticResource ModeRadio}"/>
+
+        <Style x:Key="CtrlBtn" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FCE4EC"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="18,12,18,12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel VerticalAlignment="Center" Margin="0,0,10,0">
+                <TextBlock Text="Класичне Судоку" FontSize="28" FontWeight="Bold" Foreground="#880E4F" TextWrapping="Wrap"/>
+                <TextBlock x:Name="DifficultyLabel" FontSize="13" Foreground="#AD8B96"/>
+            </StackPanel>
+
+            <Button Content="Нова гра" Style="{StaticResource PinkHoverBtn}"
+                    Margin="267,9,17,0" VerticalAlignment="Top"
+                    Click="NewGame_Click" Grid.ColumnSpan="2"/>
+
+            <Button Grid.Column="1" x:Name="BtnVisualHelp" Content="Підсвітка"
+                    Style="{StaticResource DarkPinkHoverBtn}" VerticalAlignment="Bottom"
+                    FontSize="12"
+                    Click="VisualHelp_Click" Grid.ColumnSpan="2" Margin="100,0,0,11"/>
+        </Grid>
+
+        <Border Grid.Row="1" Background="White" CornerRadius="16"
+                Padding="0,10" Margin="0,0,0,10">
+            <Border.Effect>
+                <DropShadowEffect Color="#F8BBD0" BlurRadius="12" ShadowDepth="2" Opacity="0.5"/>
+            </Border.Effect>
+            <UniformGrid Columns="3">
+
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="ПОМИЛКИ" FontSize="10" FontWeight="SemiBold"
+                               Foreground="#AD8B96" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="TxtErrors" Text="0 / 3" FontSize="22" FontWeight="Bold"
+                               Foreground="#FB607F" HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="ЧАС" FontSize="10" FontWeight="SemiBold"
+                               Foreground="#AD8B96" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="TxtTimer" Text="00:00" FontSize="22" FontWeight="Bold"
+                               Foreground="#FB607F" HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="ПІДКАЗКИ" FontSize="10" FontWeight="SemiBold"
+                               Foreground="#AD8B96" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="TxtHints" Text="3" FontSize="22" FontWeight="Bold"
+                               Foreground="#FB607F" HorizontalAlignment="Center"/>
+                </StackPanel>
+
+            </UniformGrid>
+        </Border>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,6"
+                    HorizontalAlignment="Center">
+            <TextBlock Text="Режим:" VerticalAlignment="Center" Margin="0,0,8,0"
+                       Foreground="#AD8B96" FontSize="13"/>
+            <RadioButton x:Name="RadioNormal" Content="Звичайний" IsChecked="True"
+                         GroupName="GameMode" Style="{StaticResource ModeRadio}"/>
+            <RadioButton x:Name="RadioStep" Content="Покроковий"
+                         GroupName="GameMode" Style="{StaticResource ModeRadio}"/>
+            <RadioButton x:Name="RadioAuto" Content="Автоматичний"
+                         GroupName="GameMode" Style="{StaticResource ModeRadio}"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,10"
+                    HorizontalAlignment="Center">
+            <TextBlock Text="Алгоритм:" VerticalAlignment="Center" Margin="0,0,8,0"
+                       Foreground="#AD8B96" FontSize="12"/>
+            <RadioButton x:Name="RadioBacktracking" Content="Backtracking (з поверненням)" IsChecked="True"
+                         GroupName="Algorithm" Style="{StaticResource AlgoRadio}"/>
+            <RadioButton x:Name="RadioCSP" Content="CSP (виключення)"
+                         GroupName="Algorithm" Style="{StaticResource AlgoRadio}"/>
+        </StackPanel>
+
+        <Border Grid.Row="4" HorizontalAlignment="Center" VerticalAlignment="Center"
+                Background="White" CornerRadius="18" Padding="14"
+                Name="GridContainer">
+            <Border.Effect>
+                <DropShadowEffect Color="#F48FB1" BlurRadius="18" ShadowDepth="3" Opacity="0.5"/>
+            </Border.Effect>
+            <Grid x:Name="SudokuGrid" Width="396" Height="396"
+                  Focusable="True"/>
+        </Border>
+
+        <Border Grid.Row="5" Background="White" CornerRadius="16"
+                Padding="6,6" Margin="0,10,0,8">
+            <Border.Effect>
+                <DropShadowEffect Color="#F8BBD0" BlurRadius="10" ShadowDepth="1" Opacity="0.4"/>
+            </Border.Effect>
+            <UniformGrid Columns="5">
+
+                <Button x:Name="BtnUndo" Style="{StaticResource CtrlBtn}" Click="Undo_Click">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="↩" FontSize="24" HorizontalAlignment="Center" Foreground="#880E4F"/>
+                        <TextBlock Text="Скасувати" FontSize="10.5" HorizontalAlignment="Center"
+                                   Foreground="#AD8B96" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="BtnClear" Style="{StaticResource CtrlBtn}" Click="ClearCell_Click">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="✕" FontSize="24" HorizontalAlignment="Center" Foreground="#880E4F"/>
+                        <TextBlock Text="Очистити" FontSize="10.5" HorizontalAlignment="Center"
+                                   Foreground="#AD8B96" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="BtnNotes" Style="{StaticResource CtrlBtn}" Click="Notes_Click">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock x:Name="TxtNotesIcon" Text="✏&#xFE0E;" FontSize="22" 
+                   HorizontalAlignment="Center" Foreground="#880E4F"/>
+                        <TextBlock x:Name="TxtNotesLabel" Text="Примітки" FontSize="10.5"
+                   HorizontalAlignment="Center" Foreground="#AD8B96" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="BtnSolve" Style="{StaticResource CtrlBtn}" Click="Solve_Click">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock x:Name="TxtSolveIcon" Text="▶&#xFE0E;" FontSize="22" 
+                   HorizontalAlignment="Center" Foreground="#880E4F"/>
+                        <TextBlock x:Name="TxtSolveLabel" Text="Розвʼязати" FontSize="10.5"
+                   HorizontalAlignment="Center" Foreground="#AD8B96" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="BtnHint" Style="{StaticResource CtrlBtn}" Click="Hint_Click">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="💡&#xFE0E;" FontSize="22" 
+                   HorizontalAlignment="Center" Foreground="#880E4F"/>
+                        <TextBlock x:Name="TxtHintLabel" Text="Підказка" FontSize="10.5" HorizontalAlignment="Center"
+                   Foreground="#AD8B96" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Button>
+
+
+            </UniformGrid>
+        </Border>
+
+        <Border Grid.Row="6" Background="White" CornerRadius="16" Padding="8,6">
+            <Border.Effect>
+                <DropShadowEffect Color="#F8BBD0" BlurRadius="10" ShadowDepth="1" Opacity="0.4"/>
+            </Border.Effect>
+            <UniformGrid x:Name="NumberPad" Columns="9" HorizontalAlignment="Center"/>
+        </Border>
+
+    </Grid>
+</Window>
+    
