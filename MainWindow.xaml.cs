@@ -529,8 +529,16 @@ namespace SudokuApp
             {
                 var dlg = new DifficultyDialog { Owner = this };
                 if (dlg.ShowDialog() == true)
+                {
                     DifficultyLabel.Tag = dlg.SelectedDifficulty;
-                StartNewGame();
+                    StartNewGame();
+                }
+                else
+                {
+                    // ВИПРАВЛЕННЯ: Якщо гравець просто закрив вікно вибору рівня, 
+                    // викидаємо його в меню, щоб він не дивився на вже пройдену гру.
+                    ShowPanel(PanelMenu);
+                }
             }
             else ShowPanel(PanelMenu);
         }
@@ -631,6 +639,13 @@ namespace SudokuApp
             {
                 _manualCancel = true;
                 _cts?.Cancel();
+                return;
+            }
+
+            // ВИПРАВЛЕННЯ: Блокуємо виконання алгоритму, якщо дошку вже заповнено.
+            if (_board.IsComplete())
+            {
+                MessageBox.Show("Цей рівень вже розв'язано!", "Увага", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
