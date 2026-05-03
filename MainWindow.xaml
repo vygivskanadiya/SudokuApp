@@ -77,6 +77,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <!-- Стиль для кнопок рівнів складності (рожева палітра) -->
         <Style x:Key="DiffBtn" TargetType="Button">
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="Bold"/>
@@ -169,7 +170,9 @@
     </Window.Resources>
 
     <Grid>
-        <!-- ЕКРАН 1: ГОЛОВНЕ МЕНЮ -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- ЕКРАН 1: ГОЛОВНЕ МЕНЮ                                   -->
+        <!-- ═══════════════════════════════════════════════════════ -->
         <Grid x:Name="PanelMenu" Background="#FFF0F5" Visibility="Visible">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="36,40,36,36">
@@ -178,24 +181,44 @@
                     <TextBlock Text="Класична числова головоломка"
                                FontSize="14" Foreground="#AD8B96"
                                HorizontalAlignment="Center" Margin="0,0,0,36"/>
+
                     <Button Content="▶  ПОЧАТИ ГРУ" Style="{StaticResource MenuBigBtn}"
-                            Click="MenuStart_Click" Margin="0,0,0,32"/>
-                    <Border Background="White" CornerRadius="18" Padding="24,20">
+                            Click="MenuStart_Click" Margin="0,0,0,14"/>
+
+                    <!-- Кнопка відкриття/закриття правил -->
+                    <Button x:Name="BtnRules"
+                            Content="📋  Правила гри  ▼"
+                            Style="{StaticResource PinkHoverBtn}"
+                            HorizontalAlignment="Stretch"
+                            FontSize="14"
+                            Height="44"
+                            Margin="0,0,0,8"
+                            Click="RulesToggle_Click"/>
+
+                    <!-- Блок правил (початково прихований) -->
+                    <Border x:Name="RulesPanel"
+                            Background="White" CornerRadius="18" Padding="24,20"
+                            Margin="0,0,0,24"
+                            Visibility="Collapsed">
                         <Border.Effect>
                             <DropShadowEffect Color="#F8BBD0" BlurRadius="14" ShadowDepth="2" Opacity="0.5"/>
                         </Border.Effect>
                         <StackPanel>
                             <TextBlock Text="Правила гри" FontSize="17"
                                        FontWeight="Bold" Foreground="#880E4F" Margin="0,0,0,14"/>
+
+                            <!-- Мета -->
                             <Border Background="#FFF0F5" CornerRadius="10" Padding="14,10" Margin="0,0,0,10">
                                 <StackPanel>
                                     <TextBlock Text="Мета" FontWeight="SemiBold"
                                                Foreground="#C2185B" FontSize="13" Margin="0,0,0,5"/>
                                     <TextBlock TextWrapping="Wrap" Foreground="#555" FontSize="13" LineHeight="20">
-Заповніть сітку 9x9 цифрами від 1 до 9 так, щоб кожна цифра зустрічалась рівно один раз у кожному рядку, стовпці та блоці 3x3.
+Заповніть сітку 9×9 цифрами від 1 до 9 так, щоб кожна цифра зустрічалась рівно один раз у кожному рядку, стовпці та блоці 3×3.
                                     </TextBlock>
                                 </StackPanel>
                             </Border>
+
+                            <!-- Основні правила -->
                             <Border Background="#FFF0F5" CornerRadius="10" Padding="14,10" Margin="0,0,0,10">
                                 <StackPanel>
                                     <TextBlock Text="Основні правила" FontWeight="SemiBold"
@@ -203,11 +226,13 @@
                                     <TextBlock TextWrapping="Wrap" Foreground="#555" FontSize="13" LineHeight="22">
 1.  Кожен рядок містить цифри 1–9 без повторень.
 2.  Кожен стовпець містить цифри 1–9 без повторень.
-3.  Кожен блок 3x3 містить цифри 1–9 без повторень.
+3.  Кожен блок 3×3 містить цифри 1–9 без повторень.
 4.  Темні клітинки — початкові (незмінні). Білі — ваші.
                                     </TextBlock>
                                 </StackPanel>
                             </Border>
+
+                            <!-- Керування -->
                             <Border Background="#FFF0F5" CornerRadius="10" Padding="14,10" Margin="0,0,0,10">
                                 <StackPanel>
                                     <TextBlock Text="Керування" FontWeight="SemiBold"
@@ -219,40 +244,56 @@
                                     </TextBlock>
                                 </StackPanel>
                             </Border>
-                            <Border Background="#FFF0F5" CornerRadius="10" Padding="14,10">
+
+                            <!-- Рівні складності -->
+                            <Border Background="#FFF0F5" CornerRadius="10" Padding="14,10" Margin="0,0,0,10">
                                 <StackPanel>
                                     <TextBlock Text="Рівні складності" FontWeight="SemiBold"
                                                Foreground="#C2185B" FontSize="13" Margin="0,0,0,8"/>
                                     <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                                        <Border Background="#059669" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
+                                        <Border Background="#F06292" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
                                             <TextBlock Text="Легкий" Foreground="White" FontSize="11" FontWeight="SemiBold"/>
                                         </Border>
                                         <TextBlock Text="Тільки очевидні ходи (naked singles)" Foreground="#555" FontSize="12.5" VerticalAlignment="Center"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                                        <Border Background="#D97706" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
+                                        <Border Background="#E91E63" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
                                             <TextBlock Text="Середній" Foreground="White" FontSize="11" FontWeight="SemiBold"/>
                                         </Border>
                                         <TextBlock Text="Потрібні приховані одиночки" Foreground="#555" FontSize="12.5" VerticalAlignment="Center"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal">
-                                        <Border Background="#DC2626" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
+                                        <Border Background="#AD1457" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
                                             <TextBlock Text="Важкий" Foreground="White" FontSize="11" FontWeight="SemiBold"/>
                                         </Border>
                                         <TextBlock Text="Перебір або логіка вищого рівня" Foreground="#555" FontSize="12.5" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
+
+                            <!-- Ліміт анімації -->
+                            <Border Background="#FFF0F5" CornerRadius="10" Padding="14,10">
+                                <StackPanel>
+                                    <TextBlock Text="⏱ Обмеження анімації" FontWeight="SemiBold"
+                                               Foreground="#C2185B" FontSize="13" Margin="0,0,0,8"/>
+                                    <TextBlock TextWrapping="Wrap" Foreground="#555" FontSize="13" LineHeight="22">
+У покроковому режимі анімація автоматично зупиняється після 2 хвилин. Якщо алгоритм має забагато кроків (наприклад, Backtracking на складному рівні), програма пропускає залишок анімації та одразу відображає фінальний результат — щоб не змушувати вас чекати. Статистика (кроки, відкати, час обчислення) залишається точною.
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </Border>
+
                     <TextBlock Text="КПІ ім. Ігоря Сікорського"
                                Foreground="#C9A0B0" FontSize="11"
-                               HorizontalAlignment="Center" Margin="0,24,0,0"/>
+                               HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
             </ScrollViewer>
         </Grid>
 
-        <!-- ЕКРАН 2: ВИБІР СКЛАДНОСТІ -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- ЕКРАН 2: ВИБІР СКЛАДНОСТІ (рожева палітра)             -->
+        <!-- ═══════════════════════════════════════════════════════ -->
         <Grid x:Name="PanelDifficulty" Background="#FFF0F5" Visibility="Collapsed">
             <StackPanel VerticalAlignment="Center" Margin="48,0">
                 <TextBlock Text="ВИБІР СКЛАДНОСТІ" FontSize="22" FontWeight="Black"
@@ -260,39 +301,45 @@
                 <TextBlock Text="Оберіть рівень перед початком гри"
                            FontSize="13" Foreground="#AD8B96"
                            HorizontalAlignment="Center" Margin="0,0,0,40"/>
+
+                <!-- Легкий — світло-рожевий -->
                 <Border Background="White" CornerRadius="16" Margin="0,0,0,14">
                     <Border.Effect>
-                        <DropShadowEffect Color="#A7F3D0" BlurRadius="12" ShadowDepth="2" Opacity="0.6"/>
+                        <DropShadowEffect Color="#F8BBD0" BlurRadius="12" ShadowDepth="2" Opacity="0.7"/>
                     </Border.Effect>
-                    <Button Style="{StaticResource DiffBtn}" Background="#059669" Click="DiffEasy_Click">
+                    <Button Style="{StaticResource DiffBtn}" Background="#F06292" Click="DiffEasy_Click">
                         <StackPanel HorizontalAlignment="Center">
                             <TextBlock Text="Легкий" FontSize="17" FontWeight="Bold"
                                        Foreground="White" HorizontalAlignment="Center"/>
                             <TextBlock Text="Naked singles — очевидні ходи"
-                                       FontSize="11.5" Foreground="#A7F3D0"
+                                       FontSize="11.5" Foreground="#FCE4EC"
                                        HorizontalAlignment="Center" Margin="0,3,0,0"/>
                         </StackPanel>
                     </Button>
                 </Border>
+
+                <!-- Середній — яскраво-рожевий -->
                 <Border Background="White" CornerRadius="16" Margin="0,0,0,14">
                     <Border.Effect>
-                        <DropShadowEffect Color="#FDE68A" BlurRadius="12" ShadowDepth="2" Opacity="0.6"/>
+                        <DropShadowEffect Color="#F48FB1" BlurRadius="12" ShadowDepth="2" Opacity="0.7"/>
                     </Border.Effect>
-                    <Button Style="{StaticResource DiffBtn}" Background="#D97706" Click="DiffMedium_Click">
+                    <Button Style="{StaticResource DiffBtn}" Background="#E91E63" Click="DiffMedium_Click">
                         <StackPanel HorizontalAlignment="Center">
                             <TextBlock Text="Середній" FontSize="17" FontWeight="Bold"
                                        Foreground="White" HorizontalAlignment="Center"/>
                             <TextBlock Text="Hidden singles — прихована логіка"
-                                       FontSize="11.5" Foreground="#FDE68A"
+                                       FontSize="11.5" Foreground="#FCE4EC"
                                        HorizontalAlignment="Center" Margin="0,3,0,0"/>
                         </StackPanel>
                     </Button>
                 </Border>
+
+                <!-- Важкий — темно-рожевий -->
                 <Border Background="White" CornerRadius="16" Margin="0,0,0,40">
                     <Border.Effect>
-                        <DropShadowEffect Color="#FECACA" BlurRadius="12" ShadowDepth="2" Opacity="0.6"/>
+                        <DropShadowEffect Color="#C2185B" BlurRadius="12" ShadowDepth="2" Opacity="0.6"/>
                     </Border.Effect>
-                    <Button Style="{StaticResource DiffBtn}" Background="#DC2626" Click="DiffHard_Click">
+                    <Button Style="{StaticResource DiffBtn}" Background="#AD1457" Click="DiffHard_Click">
                         <StackPanel HorizontalAlignment="Center">
                             <TextBlock Text="Важкий" FontSize="17" FontWeight="Bold"
                                        Foreground="White" HorizontalAlignment="Center"/>
@@ -302,12 +349,15 @@
                         </StackPanel>
                     </Button>
                 </Border>
+
                 <Button Content="Назад у меню" Style="{StaticResource BackMenuBtn}"
                         HorizontalAlignment="Center" Width="160" Click="BackToMenu_Click"/>
             </StackPanel>
         </Grid>
 
-        <!-- ЕКРАН 3: ГРА -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- ЕКРАН 3: ГРА                                            -->
+        <!-- ═══════════════════════════════════════════════════════ -->
         <Grid x:Name="PanelGame" Visibility="Collapsed" Margin="18,12,18,12">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -318,6 +368,8 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
+
+            <!-- Заголовок + кнопки навігації -->
             <Grid Grid.Row="0" Margin="0,0,0,12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -337,6 +389,8 @@
                             FontSize="12" Click="VisualHelp_Click"/>
                 </StackPanel>
             </Grid>
+
+            <!-- Лічильники: помилки / час / підказки -->
             <Border Grid.Row="1" Background="White" CornerRadius="16" Padding="0,10" Margin="0,0,0,10">
                 <Border.Effect>
                     <DropShadowEffect Color="#F8BBD0" BlurRadius="12" ShadowDepth="2" Opacity="0.5"/>
@@ -356,17 +410,23 @@
                     </StackPanel>
                 </UniformGrid>
             </Border>
+
+            <!-- Режим гри -->
             <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,6" HorizontalAlignment="Center">
                 <TextBlock Text="Режим:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#AD8B96" FontSize="13"/>
-                <RadioButton x:Name="RadioNormal" Content="Звичайний" IsChecked="True" GroupName="GameMode" Style="{StaticResource ModeRadio}"/>
-                <RadioButton x:Name="RadioStep" Content="Покроковий" GroupName="GameMode" Style="{StaticResource ModeRadio}"/>
-                <RadioButton x:Name="RadioAuto" Content="Автоматичний" GroupName="GameMode" Style="{StaticResource ModeRadio}"/>
+                <RadioButton x:Name="RadioNormal"  Content="Звичайний"    IsChecked="True" GroupName="GameMode" Style="{StaticResource ModeRadio}"/>
+                <RadioButton x:Name="RadioStep"    Content="Покроковий"   GroupName="GameMode" Style="{StaticResource ModeRadio}"/>
+                <RadioButton x:Name="RadioAuto"    Content="Автоматичний" GroupName="GameMode" Style="{StaticResource ModeRadio}"/>
             </StackPanel>
+
+            <!-- Вибір алгоритму -->
             <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,10" HorizontalAlignment="Center">
                 <TextBlock Text="Алгоритм:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#AD8B96" FontSize="12"/>
                 <RadioButton x:Name="RadioBacktracking" Content="Backtracking (з поверненням)" IsChecked="True" GroupName="Algorithm" Style="{StaticResource AlgoRadio}"/>
-                <RadioButton x:Name="RadioCSP" Content="CSP (виключення)" GroupName="Algorithm" Style="{StaticResource AlgoRadio}"/>
+                <RadioButton x:Name="RadioCSP"          Content="CSP (виключення)"             GroupName="Algorithm" Style="{StaticResource AlgoRadio}"/>
             </StackPanel>
+
+            <!-- Ігрова сітка -->
             <Border Grid.Row="4" HorizontalAlignment="Center" VerticalAlignment="Center"
                     Background="White" CornerRadius="18" Padding="14">
                 <Border.Effect>
@@ -374,12 +434,14 @@
                 </Border.Effect>
                 <Grid x:Name="SudokuGrid" Width="396" Height="396" Focusable="True"/>
             </Border>
+
+            <!-- Кнопки керування -->
             <Border Grid.Row="5" Background="White" CornerRadius="16" Padding="6,6" Margin="0,10,0,8">
                 <Border.Effect>
                     <DropShadowEffect Color="#F8BBD0" BlurRadius="10" ShadowDepth="1" Opacity="0.4"/>
                 </Border.Effect>
                 <UniformGrid Columns="5">
-                    <Button x:Name="BtnUndo" Style="{StaticResource CtrlBtn}" Click="Undo_Click">
+                    <Button x:Name="BtnUndo"  Style="{StaticResource CtrlBtn}" Click="Undo_Click">
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                             <TextBlock Text="&#x21A9;" FontSize="24" HorizontalAlignment="Center" Foreground="#880E4F"/>
                             <TextBlock Text="Скасувати" FontSize="10.5" HorizontalAlignment="Center" Foreground="#AD8B96" Margin="0,2,0,0"/>
@@ -393,24 +455,26 @@
                     </Button>
                     <Button x:Name="BtnNotes" Style="{StaticResource CtrlBtn}" Click="Notes_Click">
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <TextBlock x:Name="TxtNotesIcon" Text="&#x270F;&#xFE0E;" FontSize="22" HorizontalAlignment="Center" Foreground="#880E4F"/>
-                            <TextBlock x:Name="TxtNotesLabel" Text="Примітки" FontSize="10.5" HorizontalAlignment="Center" Foreground="#AD8B96" Margin="0,2,0,0"/>
+                            <TextBlock x:Name="TxtNotesIcon"  Text="&#x270F;&#xFE0E;" FontSize="22" HorizontalAlignment="Center" Foreground="#880E4F"/>
+                            <TextBlock x:Name="TxtNotesLabel" Text="Примітки"         FontSize="10.5" HorizontalAlignment="Center" Foreground="#AD8B96" Margin="0,2,0,0"/>
                         </StackPanel>
                     </Button>
                     <Button x:Name="BtnSolve" Style="{StaticResource CtrlBtn}" Click="Solve_Click">
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <TextBlock x:Name="TxtSolveIcon" Text="&#x25B6;&#xFE0E;" FontSize="22" HorizontalAlignment="Center" Foreground="#880E4F"/>
-                            <TextBlock x:Name="TxtSolveLabel" Text="&#x420;&#x43E;&#x437;&#x432;&#x2BC;&#x44F;&#x437;&#x430;&#x442;&#x438;" FontSize="10.5" HorizontalAlignment="Center" Foreground="#AD8B96" Margin="0,2,0,0"/>
+                            <TextBlock x:Name="TxtSolveIcon"  Text="&#x25B6;&#xFE0E;" FontSize="22" HorizontalAlignment="Center" Foreground="#880E4F"/>
+                            <TextBlock x:Name="TxtSolveLabel" Text="Розв&#x02BC;язати" FontSize="10.5" HorizontalAlignment="Center" Foreground="#AD8B96" Margin="0,2,0,0"/>
                         </StackPanel>
                     </Button>
                     <Button x:Name="BtnHint" Style="{StaticResource CtrlBtn}" Click="Hint_Click">
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                             <TextBlock Text="&#x1F4A1;&#xFE0E;" FontSize="22" HorizontalAlignment="Center" Foreground="#880E4F"/>
-                            <TextBlock x:Name="TxtHintLabel" Text="Підказка" FontSize="10.5" HorizontalAlignment="Center" Foreground="#AD8B96" Margin="0,2,0,0"/>
+                            <TextBlock x:Name="TxtHintLabel"  Text="Підказка" FontSize="10.5" HorizontalAlignment="Center" Foreground="#AD8B96" Margin="0,2,0,0"/>
                         </StackPanel>
                     </Button>
                 </UniformGrid>
             </Border>
+
+            <!-- Цифрова клавіатура -->
             <Border Grid.Row="6" Background="White" CornerRadius="16" Padding="8,6">
                 <Border.Effect>
                     <DropShadowEffect Color="#F8BBD0" BlurRadius="10" ShadowDepth="1" Opacity="0.4"/>
@@ -418,6 +482,5 @@
                 <UniformGrid x:Name="NumberPad" Columns="9" HorizontalAlignment="Center"/>
             </Border>
         </Grid>
-
     </Grid>
 </Window>

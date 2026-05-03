@@ -8,35 +8,63 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using SudokuApp.Analyzers;
+using SudokuApp.Game;
 using SudokuApp.Generators;
 using SudokuApp.Models;
+using SudokuApp.Rendering;
 using SudokuApp.Solvers;
 
 namespace SudokuApp
 {
+    /// <summary>
+    /// Головне вікно програми.
+    /// Принцип SRP: UI-логіка делегована допоміжним класам:
+    ///   • SudokuBoard    — стан дошки та клітинок
+    ///   • GameStateManager — помилки, підказки, ходи
+    ///   • SudokuCellRenderer (ICellRenderer) — відображення клітинок
+    /// MainWindow відповідає лише за координацію UI-подій.
+    /// </summary>
     public partial class MainWindow : Window
     {
         // ═══════════════════════════════════════════════════════════
-        //  Fields
+        //  Залежності (OOP: слабке зв'язування через інтерфейс)
         // ═══════════════════════════════════════════════════════════
-        private bool _manualCancel = false;
 
+        /// <summary>Стан ігрової дошки (клітинки, правила, undo).</summary>
         private readonly SudokuBoard _board = new();
 
-        private readonly Border[,] _cells = new Border[9, 9];
+        /// <summary>
+        /// Стан ігрової сесії: помилки, підказки, ходи.
+        /// Принцип DIP: MainWindow залежить від конкретного класу,
+        /// але через чіткий публічний контракт (не внутрішні деталі).
+        /// </summary>
+        private readonly GameStateManager _gameState = new();
+
+        /// <summary>
+        /// Рендерер клітинок.
+        /// Принцип DIP: MainWindow залежить від ICellRenderer (абстракції),
+        /// а не від SudokuCellRenderer (реалізації).
+        /// </summary>
+        private readonly ICellRenderer _cellRenderer;
+
+        // ═══════════════════════════════════════════════════════════
+        //  UI-контроли сітки (масиви по клітинках)
+        // ═══════════════════════════════════════════════════════════
+
+        private readonly Border[,] _cellBorders = new Border[9, 9];
         private readonly TextBlock[,] _cellTexts = new TextBlock[9, 9];
         private readonly Grid[,] _noteGrids = new Grid[9, 9];
         private readonly TextBlock[,][] _noteTexts = new TextBlock[9, 9][];
 
+        // ═══════════════════════════════════════════════════════════
+        //  Стан вікна
+        // ═══════════════════════════════════════════════════════════
+
         private int _selRow = -1, _selCol = -1;
-        private int _errorCount = 0;
-        private int _hintsLeft = 3;
         private bool _notesMode = false;
         private bool _visualHelp = true;
         private bool _isRunning = false;
-
-        private readonly bool[,,] _notes = new bool[9, 9, 9];
-        private int _playerMoves = 0;
+        private bool _manualCancel = false;
 
         // ── Таймер ────────────────────────────────────────────────
         private readonly DispatcherTimer _timer = new();
@@ -46,7 +74,13 @@ namespace SudokuApp
         private CancellationTokenSource? _cts;
         private const int TimeoutSeconds = 120;
 
-        // ── Brushes ───────────────────────────────────────────────
+        // ── Цифрова клавіатура ────────────────────────────────────
+        private readonly Button[] _numPadButtons = new Button[9];
+
+        // ═══════════════════════════════════════════════════════════
+        //  Кольорова схема (пензлі)
+        // ═══════════════════════════════════════════════════════════
+
         private static readonly SolidColorBrush BrNormal = Br("#FFFFFF");
         private static readonly SolidColorBrush BrHighlight = Br("#DCE9F8");
         private static readonly SolidColorBrush BrSelected = Br("#B8D4F5");
@@ -60,38 +94,43 @@ namespace SudokuApp
         private static readonly SolidColorBrush BrNote = Br("#64748B");
         private static readonly SolidColorBrush BrCtrl = Br("#4B6080");
 
-        private readonly Button[] _numPadButtons = new Button[9];
-
         private static SolidColorBrush Br(string hex) =>
             new((Color)ColorConverter.ConvertFromString(hex));
 
         // ═══════════════════════════════════════════════════════════
-        //  Constructor
+        //  Конструктор
         // ═══════════════════════════════════════════════════════════
 
         public MainWindow()
         {
             InitializeComponent();
+
+            // Створення рендерера через конструктор (Dependency Injection).
+            // MainWindow не знає про внутрішню реалізацію SudokuCellRenderer.
+            _cellRenderer = new SudokuCellRenderer(
+                fixedForeground: BrFixed,
+                userForeground: BrUser,
+                errorForeground: BrError,
+                hintForeground: BrHint,
+                noteForeground: BrNote);
+
             BuildGrid();
             BuildNumberPad();
             SetupTimer();
+
             PreviewKeyDown += OnKeyDown;
-            // Починаємо з меню — GamePanel прихований (Collapsed у XAML)
         }
 
         // ═══════════════════════════════════════════════════════════
-        //  Навігація Меню ↔ Гра
+        //  Навігація між екранами
         // ═══════════════════════════════════════════════════════════
 
-        // ── Меню → Вибір складності
         private void MenuStart_Click(object sender, RoutedEventArgs e)
             => ShowPanel(PanelDifficulty);
 
-        // ── Вибір складності → Назад у меню
         private void BackToMenu_Click(object sender, RoutedEventArgs e)
             => ShowPanel(PanelMenu);
 
-        // ── Вибір складності → Запуск гри
         private void DiffEasy_Click(object sender, RoutedEventArgs e) => LaunchGame(Difficulty.Easy);
         private void DiffMedium_Click(object sender, RoutedEventArgs e) => LaunchGame(Difficulty.Medium);
         private void DiffHard_Click(object sender, RoutedEventArgs e) => LaunchGame(Difficulty.Hard);
@@ -103,7 +142,6 @@ namespace SudokuApp
             StartNewGame();
         }
 
-        // ── Під час гри → Меню
         private void GoToMenu_Click(object sender, RoutedEventArgs e)
         {
             if (_isRunning)
@@ -119,7 +157,7 @@ namespace SudokuApp
             ShowPanel(PanelMenu);
         }
 
-        private void ShowPanel(System.Windows.UIElement panel)
+        private void ShowPanel(UIElement panel)
         {
             PanelMenu.Visibility = Visibility.Collapsed;
             PanelDifficulty.Visibility = Visibility.Collapsed;
@@ -128,26 +166,19 @@ namespace SudokuApp
         }
 
         // ═══════════════════════════════════════════════════════════
-        //  Grid construction
+        //  Правила гри (кнопка-перемикач)
         // ═══════════════════════════════════════════════════════════
 
-        private void UpdateNumberPadState()
+        private void RulesToggle_Click(object sender, RoutedEventArgs e)
         {
-            int[] counts = new int[10];
-            for (int r = 0; r < 9; r++)
-                for (int c = 0; c < 9; c++)
-                {
-                    int val = _board.Grid[r, c];
-                    if (val > 0 && val <= 9) counts[val]++;
-                }
-            for (int d = 1; d <= 9; d++)
-                if (_numPadButtons[d - 1] != null)
-                {
-                    _numPadButtons[d - 1].IsEnabled = counts[d] < 9;
-                    _numPadButtons[d - 1].Visibility =
-                        counts[d] < 9 ? Visibility.Visible : Visibility.Hidden;
-                }
+            bool expanded = RulesPanel.Visibility == Visibility.Visible;
+            RulesPanel.Visibility = expanded ? Visibility.Collapsed : Visibility.Visible;
+            BtnRules.Content = expanded ? "📋  Правила гри  ▼" : "📋  Правила гри  ▲";
         }
+
+        // ═══════════════════════════════════════════════════════════
+        //  Побудова сітки
+        // ═══════════════════════════════════════════════════════════
 
         private void BuildGrid()
         {
@@ -156,6 +187,7 @@ namespace SudokuApp
                 SudokuGrid.RowDefinitions.Add(new RowDefinition());
                 SudokuGrid.ColumnDefinitions.Add(new ColumnDefinition());
             }
+
             for (int row = 0; row < 9; row++)
                 for (int col = 0; col < 9; col++)
                 {
@@ -208,7 +240,7 @@ namespace SudokuApp
                     int r = row, c = col;
                     cell.MouseLeftButtonDown += (_, _) => OnCellClick(r, c);
 
-                    _cells[row, col] = cell;
+                    _cellBorders[row, col] = cell;
                     _cellTexts[row, col] = tb;
                     _noteGrids[row, col] = ng;
 
@@ -228,7 +260,7 @@ namespace SudokuApp
         }
 
         // ═══════════════════════════════════════════════════════════
-        //  Number pad
+        //  Цифрова клавіатура
         // ═══════════════════════════════════════════════════════════
 
         private void BuildNumberPad()
@@ -248,8 +280,26 @@ namespace SudokuApp
             }
         }
 
+        private void UpdateNumberPadState()
+        {
+            int[] counts = new int[10];
+            for (int r = 0; r < 9; r++)
+                for (int c = 0; c < 9; c++)
+                {
+                    int val = _board[r, c].Value;
+                    if (val > 0 && val <= 9) counts[val]++;
+                }
+            for (int d = 1; d <= 9; d++)
+                if (_numPadButtons[d - 1] != null)
+                {
+                    _numPadButtons[d - 1].IsEnabled = counts[d] < 9;
+                    _numPadButtons[d - 1].Visibility =
+                        counts[d] < 9 ? Visibility.Visible : Visibility.Hidden;
+                }
+        }
+
         // ═══════════════════════════════════════════════════════════
-        //  Timer
+        //  Таймер
         // ═══════════════════════════════════════════════════════════
 
         private void SetupTimer()
@@ -264,7 +314,7 @@ namespace SudokuApp
         }
 
         // ═══════════════════════════════════════════════════════════
-        //  New game
+        //  Нова гра
         // ═══════════════════════════════════════════════════════════
 
         private void StartNewGame()
@@ -272,18 +322,16 @@ namespace SudokuApp
             _cts?.Cancel();
             _isRunning = false;
 
-            _errorCount = 0;
-            _hintsLeft = 3;
+            // Скидаємо стан сесії через GameStateManager (SRP)
+            _gameState.Reset();
+
             _elapsedSec = 0;
             _selRow = -1;
             _selCol = -1;
             _notesMode = false;
-            _playerMoves = 0;
-
-            Array.Clear(_notes, 0, _notes.Length);
 
             TxtErrors.Text = "0 / 3";
-            TxtHints.Text = "3";
+            TxtHints.Text = GameStateManager.InitialHints.ToString();
             TxtTimer.Text = "00:00";
             TxtNotesIcon.Foreground = BrCtrl;
             TxtNotesLabel.Text = "Примітки";
@@ -308,7 +356,7 @@ namespace SudokuApp
         }
 
         // ═══════════════════════════════════════════════════════════
-        //  Cell display
+        //  Відображення клітинок (делегується ICellRenderer)
         // ═══════════════════════════════════════════════════════════
 
         private void RefreshAll()
@@ -320,37 +368,23 @@ namespace SudokuApp
             UpdateNumberPadState();
         }
 
+        /// <summary>
+        /// Оновлює відображення однієї клітинки.
+        /// Принцип DIP: логіка рендерингу знаходиться у ICellRenderer,
+        /// MainWindow лише координує виклик.
+        /// </summary>
         private void RefreshCell(int row, int col)
         {
-            var tb = _cellTexts[row, col];
-            var ng = _noteGrids[row, col];
-            int val = _board.Grid[row, col];
+            var cell = _board[row, col];
+            bool isConflicting = cell.Value != 0 && !_board.IsValidMove(row, col, cell.Value);
 
-            if (val != 0)
-            {
-                tb.Text = val.ToString();
-                tb.Visibility = Visibility.Visible;
-                ng.Visibility = Visibility.Collapsed;
-
-                bool isFixed = _board.IsFixed[row, col];
-                bool isInvalid = !_board.IsValidMove(row, col, val);
-
-                tb.Foreground = isFixed ? BrFixed : isInvalid ? BrError : BrUser;
-                tb.FontWeight = isFixed ? FontWeights.Bold : FontWeights.SemiBold;
-                tb.FontSize = 22;
-            }
-            else
-            {
-                tb.Text = "";
-                bool hasNotes = false;
-                for (int d = 0; d < 9; d++)
-                {
-                    _noteTexts[row, col][d].Text = _notes[row, col, d] ? (d + 1).ToString() : "";
-                    if (_notes[row, col, d]) hasNotes = true;
-                }
-                tb.Visibility = hasNotes ? Visibility.Collapsed : Visibility.Visible;
-                ng.Visibility = hasNotes ? Visibility.Visible : Visibility.Collapsed;
-            }
+            _cellRenderer.RenderCell(
+                cell,
+                _cellBorders[row, col],
+                _cellTexts[row, col],
+                _noteGrids[row, col],
+                _noteTexts[row, col],
+                isConflicting);
         }
 
         private void RefreshHighlights()
@@ -359,14 +393,14 @@ namespace SudokuApp
             {
                 for (int r = 0; r < 9; r++)
                     for (int c = 0; c < 9; c++)
-                        _cells[r, c].Background = BrNormal;
+                        _cellBorders[r, c].Background = BrNormal;
                 if (_selRow >= 0 && _selCol >= 0)
-                    _cells[_selRow, _selCol].Background = BrSelected;
+                    _cellBorders[_selRow, _selCol].Background = BrSelected;
                 return;
             }
 
             int selVal = (_selRow >= 0 && _selCol >= 0)
-                ? _board.Grid[_selRow, _selCol] : 0;
+                ? _board[_selRow, _selCol].Value : 0;
 
             for (int r = 0; r < 9; r++)
                 for (int c = 0; c < 9; c++)
@@ -375,11 +409,11 @@ namespace SudokuApp
                     bool sameRow = _selRow >= 0 && r == _selRow;
                     bool sameCol = _selCol >= 0 && c == _selCol;
                     bool sameBlock = _selRow >= 0
-                        && r / 3 == _selRow / 3 && c / 3 == _selCol / 3;
+                                      && r / 3 == _selRow / 3 && c / 3 == _selCol / 3;
                     bool sameValue = selVal > 0
-                        && _board.Grid[r, c] == selVal && !isSel;
+                                      && _board[r, c].Value == selVal && !isSel;
 
-                    _cells[r, c].Background =
+                    _cellBorders[r, c].Background =
                         isSel ? BrSelected :
                         sameValue ? BrSameVal :
                         (sameRow || sameCol || sameBlock) ? BrHighlight :
@@ -388,7 +422,7 @@ namespace SudokuApp
         }
 
         // ═══════════════════════════════════════════════════════════
-        //  Input
+        //  Ввід
         // ═══════════════════════════════════════════════════════════
 
         private void OnCellClick(int row, int col)
@@ -401,28 +435,29 @@ namespace SudokuApp
         private void InputDigit(int digit)
         {
             if (_isRunning || _selRow < 0 || _selCol < 0) return;
-            if (_board.IsFixed[_selRow, _selCol]) return;
-            if (_errorCount >= 3) return;
+            if (_board[_selRow, _selCol].IsFixed) return;
+            if (_gameState.IsGameOver) return;
 
+            // Режим нотаток: ToggleNote через Cell
             if (_notesMode)
             {
-                if (_board.Grid[_selRow, _selCol] != 0) return;
-                _notes[_selRow, _selCol, digit - 1] ^= true;
+                if (_board[_selRow, _selCol].Value != 0) return;
+                _board[_selRow, _selCol].ToggleNote(digit);
                 RefreshCell(_selRow, _selCol);
                 return;
             }
 
             _board.SetCell(_selRow, _selCol, digit);
-            for (int d = 0; d < 9; d++) _notes[_selRow, _selCol, d] = false;
 
             if (digit != 0)
             {
-                _playerMoves++;
+                _gameState.RegisterMove();
                 if (!_board.IsValidMove(_selRow, _selCol, digit))
                 {
-                    _errorCount++;
-                    TxtErrors.Text = $"{_errorCount} / 3";
-                    if (_errorCount >= 3)
+                    bool gameOver = _gameState.RegisterError();
+                    TxtErrors.Text = $"{_gameState.ErrorCount} / {GameStateManager.MaxErrors}";
+
+                    if (gameOver)
                     {
                         _timer.Stop();
                         RefreshCell(_selRow, _selCol);
@@ -442,9 +477,9 @@ namespace SudokuApp
         private void ClearCurrentCell()
         {
             if (_selRow < 0 || _selCol < 0) return;
-            if (_board.IsFixed[_selRow, _selCol]) return;
+            if (_board[_selRow, _selCol].IsFixed) return;
             _board.SetCell(_selRow, _selCol, 0);
-            for (int d = 0; d < 9; d++) _notes[_selRow, _selCol, d] = false;
+            _board[_selRow, _selCol].ClearNotes();
             RefreshCell(_selRow, _selCol);
             RefreshHighlights();
             UpdateNumberPadState();
@@ -454,9 +489,12 @@ namespace SudokuApp
         {
             if (PanelGame.Visibility != Visibility.Visible) return;
 
-            if (e.Key >= Key.D1 && e.Key <= Key.D9) { InputDigit(e.Key - Key.D0); e.Handled = true; }
-            else if (e.Key >= Key.NumPad1 && e.Key <= Key.NumPad9) { InputDigit(e.Key - Key.NumPad0); e.Handled = true; }
-            else if (e.Key is Key.Delete or Key.Back or Key.D0 or Key.NumPad0) { ClearCurrentCell(); e.Handled = true; }
+            if (e.Key >= Key.D1 && e.Key <= Key.D9)
+            { InputDigit(e.Key - Key.D0); e.Handled = true; }
+            else if (e.Key >= Key.NumPad1 && e.Key <= Key.NumPad9)
+            { InputDigit(e.Key - Key.NumPad0); e.Handled = true; }
+            else if (e.Key is Key.Delete or Key.Back or Key.D0 or Key.NumPad0)
+            { ClearCurrentCell(); e.Handled = true; }
             else if (e.Key == Key.Up && _selRow > 0) { _selRow--; RefreshHighlights(); e.Handled = true; }
             else if (e.Key == Key.Down && _selRow < 8) { _selRow++; RefreshHighlights(); e.Handled = true; }
             else if (e.Key == Key.Left && _selCol > 0) { _selCol--; RefreshHighlights(); e.Handled = true; }
@@ -464,7 +502,7 @@ namespace SudokuApp
         }
 
         // ═══════════════════════════════════════════════════════════
-        //  Win / Lose
+        //  Перемога / Програш
         // ═══════════════════════════════════════════════════════════
 
         private void CheckWin()
@@ -472,7 +510,7 @@ namespace SudokuApp
             if (!_board.IsComplete()) return;
             for (int r = 0; r < 9; r++)
                 for (int c = 0; c < 9; c++)
-                    if (!_board.IsValidMove(r, c, _board.Grid[r, c])) return;
+                    if (!_board.IsValidMove(r, c, _board[r, c].Value)) return;
 
             _timer.Stop();
             int m = _elapsedSec / 60, s = _elapsedSec % 60;
@@ -480,8 +518,8 @@ namespace SudokuApp
             var result = MessageBox.Show(
                 $"Вітаємо! Судоку розв\u02bcязано!\n\n" +
                 $"Час: {m:D2}:{s:D2}\n" +
-                $"Заповнено клітинок:  {_playerMoves}\n" +
-                $"Помилок:             {_errorCount}\n\n" +
+                $"Заповнено клітинок:  {_gameState.PlayerMoves}\n" +
+                $"Помилок:             {_gameState.ErrorCount}\n\n" +
                 $"Зіграти ще раз?",
                 "Перемога! 🎉",
                 MessageBoxButton.YesNo,
@@ -494,32 +532,27 @@ namespace SudokuApp
                     DifficultyLabel.Tag = dlg.SelectedDifficulty;
                 StartNewGame();
             }
-            else
-            {
-                ShowPanel(PanelMenu);
-            }
+            else ShowPanel(PanelMenu);
         }
 
         private void ShowGameOver()
         {
             int m = _elapsedSec / 60, s = _elapsedSec % 60;
             var result = MessageBox.Show(
-                $"Ви допустили 3 помилки. Гру завершено!\n\n" +
+                $"Ви допустили {GameStateManager.MaxErrors} помилки. Гру завершено!\n\n" +
                 $"Час: {m:D2}:{s:D2}\n" +
-                $"Заповнено клітинок:  {_playerMoves}\n\n" +
+                $"Заповнено клітинок:  {_gameState.PlayerMoves}\n\n" +
                 $"Спробувати ще раз?",
                 "Гра закінчена",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
 
-            if (result == MessageBoxResult.Yes)
-                StartNewGame();
-            else
-                ShowPanel(PanelMenu);
+            if (result == MessageBoxResult.Yes) StartNewGame();
+            else ShowPanel(PanelMenu);
         }
 
         // ═══════════════════════════════════════════════════════════
-        //  Button handlers
+        //  Обробники кнопок
         // ═══════════════════════════════════════════════════════════
 
         private void NewGame_Click(object sender, RoutedEventArgs e)
@@ -533,7 +566,6 @@ namespace SudokuApp
         private void VisualHelp_Click(object sender, RoutedEventArgs e)
         {
             _visualHelp = !_visualHelp;
-            BtnVisualHelp.Content = "Підсвітка";
             BtnVisualHelp.Style = (Style)FindResource(
                 _visualHelp ? "DarkPinkHoverBtn" : "PinkHoverBtn");
             RefreshHighlights();
@@ -566,30 +598,28 @@ namespace SudokuApp
 
         private void Hint_Click(object sender, RoutedEventArgs e)
         {
-            if (_isRunning || _hintsLeft <= 0) return;
+            if (_isRunning || !_gameState.HasHintsLeft) return;
 
+            // Знаходимо клітинку для підказки
             if (_selRow < 0 || _selCol < 0
-                || _board.IsFixed[_selRow, _selCol]
-                || _board.Grid[_selRow, _selCol] == _board.Solution[_selRow, _selCol])
+                || _board[_selRow, _selCol].IsFixed
+                || _board[_selRow, _selCol].Value == _board[_selRow, _selCol].SolutionValue)
             {
                 bool found = false;
                 for (int r = 0; r < 9 && !found; r++)
                     for (int c = 0; c < 9 && !found; c++)
-                        if (!_board.IsFixed[r, c]
-                            && _board.Grid[r, c] != _board.Solution[r, c])
+                        if (!_board[r, c].IsFixed
+                            && _board[r, c].Value != _board[r, c].SolutionValue)
                         { _selRow = r; _selCol = c; found = true; }
                 if (!found) return;
             }
 
-            int sol = _board.Solution[_selRow, _selCol];
-            _board.SetCell(_selRow, _selCol, sol, addToHistory: false);
-            for (int d = 0; d < 9; d++) _notes[_selRow, _selCol, d] = false;
+            // SetCellHint позначає клітинку як IsHinted — рендерер покаже зеленим
+            _board.SetCellHint(_selRow, _selCol, _board[_selRow, _selCol].SolutionValue);
+            _gameState.UseHint();
+            TxtHints.Text = _gameState.HintsLeft.ToString();
 
             RefreshCell(_selRow, _selCol);
-            _cellTexts[_selRow, _selCol].Foreground = BrHint;
-
-            _hintsLeft--;
-            TxtHints.Text = _hintsLeft.ToString();
             RefreshHighlights();
             UpdateNumberPadState();
             CheckWin();
@@ -599,7 +629,7 @@ namespace SudokuApp
         {
             if (_isRunning)
             {
-                _manualCancel = true; // Фіксуємо ручну зупинку
+                _manualCancel = true;
                 _cts?.Cancel();
                 return;
             }
@@ -619,7 +649,7 @@ namespace SudokuApp
         }
 
         // ═══════════════════════════════════════════════════════════
-        //  Solver modes
+        //  Режими солвера
         // ═══════════════════════════════════════════════════════════
 
         private async Task RunAutoModeAsync(ISudokuSolver solver, SolverAlgorithm alg)
@@ -638,11 +668,7 @@ namespace SudokuApp
             TxtSolveIcon.Text = "▶";
             TxtSolveLabel.Text = "Розв\u02bcязати";
 
-            if (stats.TimedOut)
-            {
-                ShowTimeout(alg, stats);
-                return;
-            }
+            if (stats.TimedOut) { ShowTimeout(alg, stats); return; }
 
             bool hasSolution = true;
             for (int r = 0; r < 9; r++)
@@ -654,14 +680,13 @@ namespace SudokuApp
                 MessageBox.Show(
                     "Не вдалося знайти рішення для поточного стану дошки.\n" +
                     "Можливо, введені числа конфліктують між собою.",
-                    "Рішення не знайдено",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                    "Рішення не знайдено", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             for (int r = 0; r < 9; r++)
                 for (int c = 0; c < 9; c++)
-                    if (!_board.IsFixed[r, c])
+                    if (!_board[r, c].IsFixed)
                         _board.SetCell(r, c, grid[r, c], addToHistory: false);
 
             RefreshAll();
@@ -680,10 +705,11 @@ namespace SudokuApp
 
         private async Task RunStepModeAsync(ISudokuSolver solver, SolverAlgorithm alg)
         {
+            // Знімаємо тільки фіксовані клітинки для солвера
             var startGrid = new int[9, 9];
             for (int r = 0; r < 9; r++)
                 for (int c = 0; c < 9; c++)
-                    startGrid[r, c] = _board.IsFixed[r, c] ? _board.Grid[r, c] : 0;
+                    startGrid[r, c] = _board[r, c].IsFixed ? _board[r, c].Value : 0;
 
             _cts = new CancellationTokenSource(TimeSpan.FromSeconds(TimeoutSeconds));
             var computeCt = _cts.Token;
@@ -704,7 +730,7 @@ namespace SudokuApp
             TxtSolveIcon.Text = "■";
             TxtSolveLabel.Text = "Стоп";
 
-            // ОСЬ ТУТ БУЛА ПРОБЛЕМА: Тепер анімація теж має ліміт у 2 хвилини!
+            // Анімація теж обмежена 2 хвилинами (відповідно до правил)
             _cts = new CancellationTokenSource(TimeSpan.FromSeconds(TimeoutSeconds));
             var animCt = _cts.Token;
 
@@ -718,7 +744,8 @@ namespace SudokuApp
                     {
                         _board.SetCell(step.Row, step.Col, step.Value, addToHistory: false);
                         RefreshCell(step.Row, step.Col);
-                        _cells[step.Row, step.Col].Background = step.IsBacktrack ? BrBacktrack : BrStep;
+                        _cellBorders[step.Row, step.Col].Background =
+                            step.IsBacktrack ? BrBacktrack : BrStep;
                     });
 
                     await Task.Delay(step.IsBacktrack ? 30 : 60, animCt);
@@ -738,30 +765,28 @@ namespace SudokuApp
             }
             catch (OperationCanceledException)
             {
-                // Якщо скасували НЕ кнопкою "Стоп", значить час анімації вийшов!
                 if (!_manualCancel)
                 {
+                    // Відновлюємо початковий стан
                     for (int r = 0; r < 9; r++)
                         for (int c = 0; c < 9; c++)
                             _board.SetCell(r, c, startGrid[r, c], addToHistory: false);
 
-                    // 2. Миттєво (без затримок) проганяємо всі кроки до фіналу
+                    // Миттєво застосовуємо всі кроки
                     foreach (var step in steps)
-                    {
                         _board.SetCell(step.Row, step.Col, step.Value, addToHistory: false);
-                    }
 
-                    _timer.Stop(); // Зупиняємо час
+                    _timer.Stop();
 
-                    // 3. Виводимо повідомлення про "перемотку"
                     MessageBox.Show(
                         $"Ліміт часу на анімацію вичерпано (2 хвилини)!\n\n" +
-                $"Алгоритм успішно знайшов рішення, але щоб не змушувати вас чекати вічність, ми пропустили залишок анімації та відразу вивели фінальний результат.\n\n" +
-                $"Обчислення:       {stats.ElapsedMs} мс\n" +
-                $"Кроків вперед:    {stats.ForwardSteps}\n" +
-                $"Відкатів:         {stats.BacktrackSteps}\n" +
-                $"Всього ходів:     {stats.ForwardSteps + stats.BacktrackSteps}",
-                "Анімацію пропущено", MessageBoxButton.OK, MessageBoxImage.Information);
+                        $"Алгоритм успішно знайшов рішення, але щоб не змушувати вас чекати, " +
+                        $"ми пропустили залишок анімації та одразу вивели фінальний результат.\n\n" +
+                        $"Обчислення:       {stats.ElapsedMs} мс\n" +
+                        $"Кроків вперед:    {stats.ForwardSteps}\n" +
+                        $"Відкатів:         {stats.BacktrackSteps}\n" +
+                        $"Всього ходів:     {stats.ForwardSteps + stats.BacktrackSteps}",
+                        "Анімацію пропущено", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             finally
@@ -775,13 +800,12 @@ namespace SudokuApp
         }
 
         // ═══════════════════════════════════════════════════════════
-        //  Timeout
+        //  Таймаут алгоритму
         // ═══════════════════════════════════════════════════════════
 
         private void ShowTimeout(SolverAlgorithm alg, SolveStats stats)
         {
-            _timer.Stop(); // Зупиняємо секундомір на екрані
-
+            _timer.Stop();
             string algName = alg == SolverAlgorithm.Backtracking ? "Backtracking" : "CSP";
             string reason = alg == SolverAlgorithm.Backtracking
                 ? "Backtracking у найгіршому випадку має складність O(9ⁿ). " +
@@ -803,9 +827,14 @@ namespace SudokuApp
     }
 
     // ═══════════════════════════════════════════════════════════════
-    //  Difficulty dialog
+    //  Діалог вибору складності (для кнопки "Нова гра")
     // ═══════════════════════════════════════════════════════════════
 
+    /// <summary>
+    /// Спливаюче вікно вибору складності.
+    /// Окремий клас — принцип SRP: виклик нової гри відповідає за вибір,
+    /// а MainWindow — за запуск.
+    /// </summary>
     internal class DifficultyDialog : Window
     {
         public Difficulty SelectedDifficulty { get; private set; } = Difficulty.Easy;
@@ -816,8 +845,7 @@ namespace SudokuApp
             Width = 320; Height = 230;
             ResizeMode = ResizeMode.NoResize;
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            Background = new SolidColorBrush(
-                (Color)ColorConverter.ConvertFromString("#EAF0FB"));
+            Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFF0F5"));
             FontFamily = new FontFamily("Segoe UI");
 
             var panel = new StackPanel { Margin = new Thickness(24, 20, 24, 20) };
@@ -826,28 +854,27 @@ namespace SudokuApp
                 Text = "Оберіть рівень складності:",
                 FontSize = 15,
                 FontWeight = FontWeights.SemiBold,
-                Foreground = new SolidColorBrush(
-                    (Color)ColorConverter.ConvertFromString("#1A1A2E")),
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#880E4F")),
                 Margin = new Thickness(0, 0, 0, 8)
             });
             panel.Children.Add(new TextBlock
             {
-                Text = "Легкий — лише одиночні кандидати\n" +
+                Text = "Легкий   — лише одиночні кандидати\n" +
                              "Середній — потрібні приховані одиночки\n" +
-                             "Важкий — потрібен перебір",
+                             "Важкий   — потрібен перебір",
                 FontSize = 11.5,
-                Foreground = new SolidColorBrush(
-                    (Color)ColorConverter.ConvertFromString("#64748B")),
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#64748B")),
                 Margin = new Thickness(0, 0, 0, 14)
             });
 
             var btnPanel = new StackPanel { Orientation = Orientation.Horizontal };
 
+            // Рожева палітра для трьох кнопок — від світлого до темного
             (string Label, string Color, Difficulty Diff)[] items =
             {
-                ("Легкий",   "#059669", Difficulty.Easy),
-                ("Середній", "#D97706", Difficulty.Medium),
-                ("Важкий",   "#DC2626", Difficulty.Hard),
+                ("Легкий",   "#F06292", Difficulty.Easy),
+                ("Середній", "#E91E63", Difficulty.Medium),
+                ("Важкий",   "#AD1457", Difficulty.Hard),
             };
 
             foreach (var (label, color, diff) in items)

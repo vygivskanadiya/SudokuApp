@@ -6,7 +6,7 @@
 
         <!-- ===== MODERN BUTTON ===== -->
         <Style x:Key="ModernBtn" TargetType="Button">
-            <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="Background" Value="#E91E63"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
             <Setter Property="FontSize" Value="13"/>
@@ -23,13 +23,13 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#1D4ED8"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#C2185B"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#1E40AF"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#880E4F"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="Bd" Property="Background" Value="#93C5FD"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#F48FB1"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -37,22 +37,22 @@
             </Setter>
         </Style>
 
-        <!-- ===== DANGER BUTTON (Reset / Stop) ===== -->
+        <!-- ===== DANGER BUTTON ===== -->
         <Style x:Key="DangerBtn" TargetType="Button" BasedOn="{StaticResource ModernBtn}">
-            <Setter Property="Background" Value="#DC2626"/>
+            <Setter Property="Background" Value="#AD1457"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#B91C1C"/>
+                    <Setter Property="Background" Value="#880E4F"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
         <!-- ===== SUCCESS BUTTON ===== -->
         <Style x:Key="SuccessBtn" TargetType="Button" BasedOn="{StaticResource ModernBtn}">
-            <Setter Property="Background" Value="#059669"/>
+            <Setter Property="Background" Value="#E91E63"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#047857"/>
+                    <Setter Property="Background" Value="#C2185B"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -61,25 +61,25 @@
         <Style x:Key="ModeRadio" TargetType="RadioButton">
             <Setter Property="FontFamily" Value="Segoe UI"/>
             <Setter Property="FontSize" Value="12.5"/>
-            <Setter Property="Foreground" Value="#4B6080"/>
+            <Setter Property="Foreground" Value="#880E4F"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Margin" Value="0,0,4,0"/>
             <Setter Property="Padding" Value="10,5"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="Bd" Background="#E8EEF8" CornerRadius="8"
+                        <Border x:Name="Bd" Background="#FCE4EC" CornerRadius="8"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#2563EB"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#E91E63"/>
                                 <Setter Property="Foreground" Value="White"/>
                                 <Setter Property="FontWeight" Value="SemiBold"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#D1DCF0"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#F8BBD0"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -93,10 +93,10 @@
             <Setter Property="Padding" Value="8,4"/>
         </Style>
 
-        <!-- ===== NUMBER PAD BUTTON ===== -->
+        <!-- ===== NUMBER PAD BUTTON (рожеві цифри 1–9) ===== -->
         <Style x:Key="NumBtn" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#1D3461"/>
+            <Setter Property="Foreground" Value="#880E4F"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
             <Setter Property="FontSize" Value="26"/>
             <Setter Property="FontWeight" Value="Light"/>
@@ -112,10 +112,13 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#DBEAFE"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#FCE4EC"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#BFDBFE"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#F8BBD0"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.3"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -126,7 +129,7 @@
         <!-- ===== CONTROL BUTTON (Undo / Clear / Notes / Hint / Solve) ===== -->
         <Style x:Key="CtrlBtn" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#4B6080"/>
+            <Setter Property="Foreground" Value="#880E4F"/>
             <Setter Property="Width" Value="70"/>
             <Setter Property="Height" Value="62"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -139,10 +142,10 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#EBF1FB"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#FCE4EC"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#D1DCF0"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#F8BBD0"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.4"/>
