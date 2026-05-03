@@ -1,80 +1,110 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
-  <Class Name="SudokuApp.Models.SudokuBoard">
-    <Position X="9.25" Y="1.5" Width="1.5" />
+  <Class Name="SudokuApp.Solvers.BacktrackingSolver" Collapsed="true">
+    <Position X="1" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAIACAAAAAAAABAABAAAAA=</HashCode>
+      <FileName>BacktrackingSolver.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SudokuApp.Solvers.CspSolver" Collapsed="true">
+    <Position X="5.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BEAABAAAAAIAAQAAAQACAAAIFAAAAAAAAAAAABAAAQA=</HashCode>
+      <FileName>Cspsolver.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SudokuApp.Analyzers.DifficultyAnalyzer" Collapsed="true">
+    <Position X="0.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAJAAAAAAAAAAAAAAAAAMAAAAAAAQAAAABA=</HashCode>
+      <FileName>DifficultyAnalyzer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SudokuApp.Models.SudokuBoard" Collapsed="true">
+    <Position X="7.5" Y="3.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AQAEAhAAAAAABAAAACCAAAgAAACgAAAAAAAAAAAAAAA=</HashCode>
       <FileName>SudokuBoard.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
       <Field Name="_history" />
-      <Property Name="Grid" />
-      <Property Name="Solution" />
     </ShowAsAssociation>
   </Class>
   <Class Name="SudokuApp.Generators.SudokuGenerator">
-    <Position X="3.75" Y="2.75" Width="1.5" />
+    <Position X="9.75" Y="5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAABgAAAAAIAAAAAAAAAAAAhAAAAAAAAAEAANBA=</HashCode>
       <FileName>SudokuGenerator.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
-      <Field Name="RemoveTarget" />
       <Field Name="Rng" />
     </ShowAsAssociation>
   </Class>
-  <Class Name="SudokuApp.Solvers.SudokuSolver">
-    <Position X="7.25" Y="5.75" Width="2" />
+  <Class Name="SudokuApp.Solvers.SudokuSolverBase" Collapsed="true">
+    <Position X="3" Y="7" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>BEAEBAABABIIAQAAAQgCAQAIFAAAAAAAAEAABBAAARg=</HashCode>
-      <FileName>SudokuSolver.cs</FileName>
+      <HashCode>AAAAAAABAAAACAAAAAgAAQAIAAAAAAAAAAAAABAAABg=</HashCode>
+      <FileName>Sudokusolverbase.cs</FileName>
     </TypeIdentifier>
-  </Class>
-  <Class Name="SudokuApp.Analyzers.DifficultyAnalyzer">
-    <Position X="6" Y="0.75" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAAJAAAAAAAAAAAAAAAAAMAAAAAAAQAAAABA=</HashCode>
-      <FileName>DifficultyAnalyzer.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="System.Collections.Generic.Stack&lt;T&gt;" Collapsed="true">
-    <Position X="12.75" Y="1.5" Width="1.5" />
-    <TypeIdentifier />
     <Lollipop Position="0.2" />
   </Class>
-  <Class Name="System.Collections.Generic.Dictionary&lt;TKey, TValue&gt;" Collapsed="true">
-    <Position X="4.25" Y="8.5" Width="1.5" />
-    <TypeIdentifier />
-    <Lollipop Position="0.2" />
+  <Class Name="SudokuApp.Solvers.SudokuSolverFactory" Collapsed="true">
+    <Position X="7.75" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAA=</HashCode>
+      <FileName>Sudokusolverfactory.cs</FileName>
+    </TypeIdentifier>
   </Class>
   <Class Name="System.Random" Collapsed="true">
-    <Position X="6.25" Y="3.25" Width="1.5" />
+    <Position X="13.25" Y="5" Width="1.5" />
     <TypeIdentifier />
   </Class>
-  <Class Name="System.Int32" Collapsed="true">
-    <Position X="13" Y="5.75" Width="1.5" />
+  <Class Name="System.Collections.Generic.Stack&lt;T&gt;" Collapsed="true">
+    <Position X="11" Y="3.5" Width="1.5" />
     <TypeIdentifier />
     <Lollipop Position="0.2" />
   </Class>
-  <Enum Name="SudokuApp.Generators.Difficulty">
-    <Position X="0.5" Y="2.5" Width="1.5" />
+  <Struct Name="SudokuApp.Solvers.SolveStats" Collapsed="true">
+    <Position X="5.25" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAQAAAAAAAAIAAAAAAAAAACCAAAAAAAAA=</HashCode>
+      <FileName>SolverModels.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SudokuApp.Solvers.SolveStep" Collapsed="true">
+    <Position X="7" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAABAAAAAAAEAAgAAAAAgAAAAAAA=</HashCode>
+      <FileName>SolverModels.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Interface Name="SudokuApp.Solvers.ISudokuSolver" Collapsed="true">
+    <Position X="4" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAABAAAAA=</HashCode>
+      <FileName>ISudokusolver.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Enum Name="SudokuApp.Analyzers.ActualDifficulty" Collapsed="true">
+    <Position X="0.75" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAkAAA=</HashCode>
+      <FileName>DifficultyAnalyzer.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="SudokuApp.Solvers.SolverAlgorithm" Collapsed="true">
+    <Position X="5.25" Y="7.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAQAAAAAAAACAAAAAAAAAAAAA=</HashCode>
+      <FileName>SolverModels.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="SudokuApp.Generators.Difficulty" Collapsed="true">
+    <Position X="9.75" Y="6.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAkAAA=</HashCode>
       <FileName>SudokuGenerator.cs</FileName>
-    </TypeIdentifier>
-  </Enum>
-  <Enum Name="SudokuApp.Solvers.SolverAlgorithm">
-    <Position X="1.75" Y="6" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAQAAAAAAAACAAAAAAAAAAAAA=</HashCode>
-      <FileName>SudokuSolver.cs</FileName>
-    </TypeIdentifier>
-  </Enum>
-  <Enum Name="SudokuApp.Analyzers.ActualDifficulty">
-    <Position X="3.5" Y="1" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAkAAA=</HashCode>
-      <FileName>DifficultyAnalyzer.cs</FileName>
     </TypeIdentifier>
   </Enum>
   <Font Name="Segoe UI" Size="9" />

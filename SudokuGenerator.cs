@@ -11,7 +11,6 @@ namespace SudokuApp.Generators
     {
         private static readonly Random Rng = new();
 
-        // Кількість клітинок до видалення (стартова ціль)
         private static readonly Dictionary<Difficulty, int> RemoveTarget = new()
         {
             { Difficulty.Easy,   36 },
@@ -19,18 +18,12 @@ namespace SudokuApp.Generators
             { Difficulty.Hard,   52 },
         };
 
-        /// <summary>
-        /// Генерує пару (puzzle, solution) з унікальним рішенням.
-        /// Фактична складність визначається DifficultyAnalyzer і може відрізнятись
-        /// від бажаної — у такому випадку кількість видалених клітинок коригується.
-        /// </summary>
-        public static (int[,] Puzzle, int[,] Solution, ActualDifficulty ActualDiff) Generate(Difficulty diff)
+        public static (int[,] Puzzle, int[,] Solution, ActualDifficulty ActualDiff) Generate(
+            Difficulty diff)
         {
-            // 1. Заповнити повне поле (рішення)
             var solution = new int[9, 9];
             FillGrid(solution);
 
-            // 2. Спробувати отримати потрібну складність (макс. 5 спроб)
             for (int attempt = 0; attempt < 5; attempt++)
             {
                 var puzzle = Clone(solution);
@@ -38,30 +31,27 @@ namespace SudokuApp.Generators
 
                 var actualDiff = DifficultyAnalyzer.Analyze(puzzle);
 
-                // Якщо складність збігається — повертаємо
                 if (DiffMatches(diff, actualDiff))
                     return (puzzle, solution, actualDiff);
 
-                // Якщо занадто легко — видаляємо ще декілька клітинок
                 if (actualDiff == ActualDifficulty.Easy && diff != Difficulty.Easy)
                     RemoveCells(puzzle, 4);
             }
 
-            // Після 5 спроб — повертаємо як є
-            var fallbackPuzzle = Clone(solution);
-            RemoveCells(fallbackPuzzle, RemoveTarget[diff]);
-            return (fallbackPuzzle, solution, DifficultyAnalyzer.Analyze(fallbackPuzzle));
+            var fallback = Clone(solution);
+            RemoveCells(fallback, RemoveTarget[diff]);
+            return (fallback, solution, DifficultyAnalyzer.Analyze(fallback));
         }
 
-        // ── Grid filling ────────────────────────────────────────────────────────
+        // ── Grid filling ─────────────────────────────────────────────────────
 
         private static bool FillGrid(int[,] g)
         {
             if (!FindEmpty(g, out int row, out int col)) return true;
-            var nums = Shuffled();
-            foreach (int n in nums)
+            foreach (int n in Shuffled())
             {
-                if (SudokuSolver.IsValid(g, row, col, n))
+                // Використовуємо IsValid з базового класу солвера
+                if (SudokuSolverBase.IsValid(g, row, col, n))
                 {
                     g[row, col] = n;
                     if (FillGrid(g)) return true;
@@ -71,7 +61,7 @@ namespace SudokuApp.Generators
             return false;
         }
 
-        // ── Cell removal ────────────────────────────────────────────────────────
+        // ── Cell removal ─────────────────────────────────────────────────────
 
         private static void RemoveCells(int[,] g, int count)
         {
@@ -87,14 +77,16 @@ namespace SudokuApp.Generators
                 if (removed >= count) break;
                 int backup = g[r, c];
                 g[r, c] = 0;
-                if (SudokuSolver.CountSolutions(g, 2) != 1)
+
+                // Використовуємо CountSolutions з базового класу солвера
+                if (SudokuSolverBase.CountSolutions(g, 2) != 1)
                     g[r, c] = backup;
                 else
                     removed++;
             }
         }
 
-        // ── Helpers ─────────────────────────────────────────────────────────────
+        // ── Helpers ──────────────────────────────────────────────────────────
 
         private static bool DiffMatches(Difficulty wanted, ActualDifficulty actual) =>
             wanted == Difficulty.Easy && actual == ActualDifficulty.Easy ||
@@ -106,13 +98,16 @@ namespace SudokuApp.Generators
             for (row = 0; row < 9; row++)
                 for (col = 0; col < 9; col++)
                     if (g[row, col] == 0) return true;
-            col = 0; return false;
+            col = 0;
+            return false;
         }
 
         private static int[,] Clone(int[,] g)
         {
             var c = new int[9, 9];
-            for (int r = 0; r < 9; r++) for (int col = 0; col < 9; col++) c[r, col] = g[r, col];
+            for (int r = 0; r < 9; r++)
+                for (int col = 0; col < 9; col++)
+                    c[r, col] = g[r, col];
             return c;
         }
 
