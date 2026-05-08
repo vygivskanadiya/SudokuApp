@@ -1,20 +1,16 @@
 ﻿namespace SudokuApp.Solvers
 {
-    // Відновлений список алгоритмів
     public enum SolverAlgorithm
     {
         Backtracking,
         ConstraintPropagation
     }
 
-    /// <summary>
-    /// Зберігає статистику процесу розв'язання.
-    /// </summary>
     public struct SolveStats
     {
         public int ForwardSteps { get; }
-        public int BacktrackSteps { get; } // Виправлено назву
-        public long ElapsedMs { get; }     // Виправлено назву
+        public int BacktrackSteps { get; }
+        public long ElapsedMs { get; }
         public bool TimedOut { get; }
 
         public SolveStats(int forwardSteps, int backtrackSteps, long elapsedMs, bool timedOut)
@@ -26,9 +22,6 @@
         }
     }
 
-    /// <summary>
-    /// Описує один крок алгоритму для візуалізації.
-    /// </summary>
     public struct SolveStep
     {
         public int Row { get; }

@@ -5,22 +5,14 @@ using System.Threading;
 
 namespace SudokuApp.Solvers
 {
-    /// <summary>
-    /// Абстрактний базовий клас. Містить спільну логіку (IsValid, Clone, CountSolutions),
-    /// щоб підкласи не дублювали код.
-    /// </summary>
     public abstract class SudokuSolverBase : ISudokuSolver
     {
-        // ── Абстрактні методи — кожен підклас реалізує по-своєму ─────────────
 
         public abstract SolveStats Solve(int[,] grid, CancellationToken ct = default);
 
         public abstract (List<SolveStep>? Steps, SolveStats Stats) GetSteps(
             int[,] grid, CancellationToken ct = default);
 
-        // ── Публічні утиліти (потрібні генератору) ────────────────────────────
-
-        /// <summary>Підраховує кількість рішень до ліміту.</summary>
         public static int CountSolutions(int[,] grid, int limit = 2)
         {
             int count = 0;
@@ -28,7 +20,6 @@ namespace SudokuApp.Solvers
             return count;
         }
 
-        /// <summary>Перевіряє, чи можна поставити val у (row, col).</summary>
         public static bool IsValid(int[,] grid, int row, int col, int val)
         {
             for (int c = 0; c < 9; c++)
@@ -42,7 +33,6 @@ namespace SudokuApp.Solvers
             return true;
         }
 
-        // ── Захищені утиліти (для підкласів) ─────────────────────────────────
 
         protected static bool FindEmpty(int[,] g, out int row, out int col)
         {
@@ -62,7 +52,6 @@ namespace SudokuApp.Solvers
             return c;
         }
 
-        /// <summary>Будує SolveStats зі списку кроків та часу.</summary>
         protected static SolveStats BuildStats(
             List<SolveStep> steps, long elapsedMs, bool timedOut)
         {
@@ -72,7 +61,6 @@ namespace SudokuApp.Solvers
             return new SolveStats(fwd, bwd, elapsedMs, timedOut);
         }
 
-        // ── Приватні ─────────────────────────────────────────────────────────
 
         private static void CountHelper(int[,] g, ref int count, int limit)
         {

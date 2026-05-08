@@ -4,12 +4,9 @@ using System.Threading;
 
 namespace SudokuApp.Solvers
 {
-    /// <summary>
-    /// Алгоритм простого перебору (backtracking).
-    /// </summary>
+
     public sealed class BacktrackingSolver : SudokuSolverBase
     {
-        // ── ISudokuSolver ─────────────────────────────────────────────────────
 
         public override SolveStats Solve(int[,] grid, CancellationToken ct = default)
         {
@@ -35,7 +32,6 @@ namespace SudokuApp.Solvers
             return (!ok || timedOut) ? (null, stats) : (steps, stats);
         }
 
-        // ── Приватна логіка ───────────────────────────────────────────────────
 
         private bool SolveRecursive(
             int[,] grid, CancellationToken ct, ref int fwd, ref int bwd)

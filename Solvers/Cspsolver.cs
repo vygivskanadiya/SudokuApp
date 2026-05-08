@@ -5,12 +5,9 @@ using System.Threading;
 
 namespace SudokuApp.Solvers
 {
-    /// <summary>
-    /// Алгоритм CSP: Arc-Consistency (пропагація обмежень) + MRV (мінімальний залишковий домен).
-    /// </summary>
+
     public sealed class CspSolver : SudokuSolverBase
     {
-        // ── ISudokuSolver ─────────────────────────────────────────────────────
 
         public override SolveStats Solve(int[,] grid, CancellationToken ct = default)
         {
@@ -42,7 +39,6 @@ namespace SudokuApp.Solvers
             return (!ok || timedOut) ? (null, stats) : (steps, stats);
         }
 
-        // ── Побудова доменів ──────────────────────────────────────────────────
 
         private static HashSet<int>[,] BuildDomains(int[,] grid)
         {
@@ -67,7 +63,6 @@ namespace SudokuApp.Solvers
                     if (grid[r, c] != 0) domain.Remove(grid[r, c]);
         }
 
-        // ── Пропагація ────────────────────────────────────────────────────────
 
         private static bool Propagate(int[,] grid, HashSet<int>[,] d, CancellationToken ct)
         {
@@ -135,7 +130,6 @@ namespace SudokuApp.Solvers
             return true;
         }
 
-        // ── CSP Backtrack (MRV) ───────────────────────────────────────────────
 
         private bool CspBacktrack(
             int[,] grid, HashSet<int>[,] d, CancellationToken ct, ref int fwd, ref int bwd)
@@ -196,8 +190,6 @@ namespace SudokuApp.Solvers
             }
             return false;
         }
-
-        // ── Допоміжні методи для доменів ─────────────────────────────────────
 
         private static HashSet<int>[,] CloneDomains(HashSet<int>[,] d)
         {

@@ -343,7 +343,7 @@ namespace SudokuApp
                                     && _board[r, c].Value != _board[r, c].SolutionValue;
 
                     _cellBorders[r, c].Background =
-                        isWrong ? BrNormal :  // залишаємо колір рендерера (червоний текст)
+                        isWrong ? BrNormal :
                         isSel ? BrSelected :
                         sameValue ? BrSameVal :
                         (sameRow || sameCol || sameBlock) ? BrHighlight :

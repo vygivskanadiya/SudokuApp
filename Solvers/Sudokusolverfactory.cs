@@ -2,10 +2,6 @@
 
 namespace SudokuApp.Solvers
 {
-    /// <summary>
-    /// Фабрика — єдине місце, де enum перетворюється на конкретний клас.
-    /// Увесь інший код працює тільки з <see cref="ISudokuSolver"/>.
-    /// </summary>
     public static class SudokuSolverFactory
     {
         public static ISudokuSolver Create(SolverAlgorithm algorithm) => algorithm switch

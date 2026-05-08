@@ -2,20 +2,12 @@ using System.Collections.Generic;
 
 namespace SudokuApp.Models
 {
-    /// <summary>
-    /// Зберігає та керує повним станом ігрової дошки судоку через масив Cell.
-    /// Відповідає за: завантаження головоломок, операції з клітинками, валідацію, undo.
-    /// Принцип SRP: дошка відповідає лише за стан і правила гри, не за UI.
-    /// Принцип інкапсуляції: зовнішній код отримує доступ через Cell-об'єкти,
-    /// а не через сирі масиви int[,] / bool[,].
-    /// </summary>
+
     public class SudokuBoard
     {
-        // ── Клітинки ──────────────────────────────────────────────────────
         private readonly Cell[,] _cells;
         private readonly Stack<(int Row, int Col, int OldVal)> _history = new();
 
-        // ── Конструктор ───────────────────────────────────────────────────
         public SudokuBoard()
         {
             _cells = new Cell[9, 9];
@@ -24,14 +16,9 @@ namespace SudokuApp.Models
                     _cells[r, c] = new Cell();
         }
 
-        // ── Доступ до клітинок ────────────────────────────────────────────
-
-        /// <summary>Індексатор: зручний доступ до клітинки по координатах.</summary>
         public Cell this[int row, int col] => _cells[row, col];
 
-        // ── Завантаження ──────────────────────────────────────────────────
 
-        /// <summary>Завантажує нову головоломку та рішення у дошку.</summary>
         public void LoadFromArrays(int[,] puzzle, int[,] solution)
         {
             _history.Clear();
@@ -40,12 +27,6 @@ namespace SudokuApp.Models
                     _cells[r, c].Initialize(puzzle[r, c], solution[r, c]);
         }
 
-        // ── Операції з клітинками ─────────────────────────────────────────
-
-        /// <summary>
-        /// Встановлює значення клітинки.
-        /// </summary>
-        /// <returns>False, якщо клітинка є фіксованою.</returns>
         public bool SetCell(int row, int col, int value, bool addToHistory = true)
         {
             var cell = _cells[row, col];
@@ -56,10 +37,6 @@ namespace SudokuApp.Models
             return true;
         }
 
-        /// <summary>
-        /// Встановлює значення клітинки як підказку (позначає IsHinted = true).
-        /// Не додає до історії скасування.
-        /// </summary>
         public bool SetCellHint(int row, int col, int value)
         {
             var cell = _cells[row, col];
@@ -68,7 +45,6 @@ namespace SudokuApp.Models
             return true;
         }
 
-        /// <summary>Скасовує останній хід. Повертає false, якщо нічого скасовувати.</summary>
         public bool Undo(out int row, out int col, out int restoredValue)
         {
             if (_history.Count == 0) { row = col = restoredValue = 0; return false; }
@@ -80,7 +56,6 @@ namespace SudokuApp.Models
 
         public void ClearHistory() => _history.Clear();
 
-        /// <summary>Скидає всі нефіксовані клітинки до 0.</summary>
         public void Reset()
         {
             _history.Clear();
@@ -88,10 +63,6 @@ namespace SudokuApp.Models
                 for (int c = 0; c < 9; c++)
                     _cells[r, c].Reset();
         }
-
-        // ── Валідація ─────────────────────────────────────────────────────
-
-        /// <summary>Перевіряє, чи значення у (row,col) конфліктує з правилами судоку.</summary>
         public bool IsValidMove(int row, int col, int value)
         {
             if (value == 0) return true;
@@ -110,7 +81,6 @@ namespace SudokuApp.Models
             return true;
         }
 
-        /// <summary>True, коли всі клітинки заповнені.</summary>
         public bool IsComplete()
         {
             for (int r = 0; r < 9; r++)
@@ -119,10 +89,6 @@ namespace SudokuApp.Models
             return true;
         }
 
-        /// <summary>
-        /// Повертає глибоку копію поточних значень у вигляді int[,]
-        /// (для передачі в алгоритми-солвери).
-        /// </summary>
         public int[,] CloneGrid()
         {
             var g = new int[9, 9];

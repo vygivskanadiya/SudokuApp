@@ -5,28 +5,14 @@ using SudokuApp.Models;
 
 namespace SudokuApp.Renders
 {
-    /// <summary>
-    /// Конкретна реалізація ICellRenderer для WPF-відображення клітинок судоку.
-    /// Інкапсулює всю логіку вибору кольорів та шрифтів — MainWindow не знає
-    /// цих деталей (принцип приховування реалізації).
-    /// Кольорова схема передається через конструктор (Dependency Injection),
-    /// що спрощує зміну теми без модифікації класу (принцип OCP).
-    /// </summary>
     public class SudokuCellRenderer : ICellRenderer
     {
-        // ── Колірна схема ─────────────────────────────────────────────────
         private readonly Brush _fixedForeground;
         private readonly Brush _userForeground;
         private readonly Brush _errorForeground;
         private readonly Brush _hintForeground;
         private readonly Brush _noteForeground;
 
-        // ── Конструктор ───────────────────────────────────────────────────
-
-        /// <summary>
-        /// Створює рендерер із заданою колірною схемою.
-        /// Усі кольори передаються ззовні — клас не залежить від конкретних hex-значень.
-        /// </summary>
         public SudokuCellRenderer(
             Brush fixedForeground,
             Brush userForeground,
@@ -41,9 +27,6 @@ namespace SudokuApp.Renders
             _noteForeground = noteForeground;
         }
 
-        // ── ICellRenderer ─────────────────────────────────────────────────
-
-        /// <inheritdoc/>
         public void RenderCell(
             Cell cell,
             Border border,
@@ -58,7 +41,6 @@ namespace SudokuApp.Renders
                 RenderEmptyCell(cell, mainText, noteGrid, noteTexts);
         }
 
-        // ── Приватна логіка ───────────────────────────────────────────────
 
         private void RenderFilledCell(
             Cell cell, TextBlock mainText, Grid noteGrid, bool isConflicting)
