@@ -36,6 +36,7 @@ namespace SudokuApp
         private bool _visualHelp = true;
         private bool _isRunning = false;
         private bool _manualCancel = false;
+        private bool _isGameFinished = false;
         private int _totalErrorsMade = 0;
 
         private readonly DispatcherTimer _timer = new();
@@ -256,6 +257,8 @@ namespace SudokuApp
         {
             _cts?.Cancel();
             _isRunning = false;
+            _isGameFinished = false;
+            SetBoardLocked(false);
 
             _gameState.Reset();
             _totalErrorsMade = 0;
@@ -343,7 +346,7 @@ namespace SudokuApp
                                     && _board[r, c].Value != _board[r, c].SolutionValue;
 
                     _cellBorders[r, c].Background =
-                        isWrong ? BrNormal :
+                        isWrong ? BrNormal :  // залишаємо колір рендерера (червоний текст)
                         isSel ? BrSelected :
                         sameValue ? BrSameVal :
                         (sameRow || sameCol || sameBlock) ? BrHighlight :
@@ -360,7 +363,7 @@ namespace SudokuApp
 
         private void InputDigit(int digit)
         {
-            if (_isRunning || _selRow < 0 || _selCol < 0) return;
+            if (_isRunning || _isGameFinished || _selRow < 0 || _selCol < 0) return;
             if (_board[_selRow, _selCol].IsFixed) return;
 
             if (_notesMode)
@@ -387,7 +390,7 @@ namespace SudokuApp
 
         private void ClearCurrentCell()
         {
-            if (_selRow < 0 || _selCol < 0) return;
+            if (_isGameFinished || _selRow < 0 || _selCol < 0) return;
             if (_board[_selRow, _selCol].IsFixed) return;
             _board.SetCell(_selRow, _selCol, 0);
             _board[_selRow, _selCol].ClearNotes();
@@ -430,6 +433,20 @@ namespace SudokuApp
                 _totalErrorsMade++;
         }
 
+        private void SetBoardLocked(bool locked)
+        {
+            // Вимикаємо окремі кнопки замість усієї панелі CtrlPanel
+            BtnUndo.IsEnabled = !locked;   // Кнопка "Скасувати"
+            BtnClear.IsEnabled = !locked;  // Кнопка "Очистити"
+            BtnNotes.IsEnabled = !locked;  // Кнопка "Примітки"
+            BtnHint.IsEnabled = !locked;   // Кнопка "Підказка"
+
+            NumberPad.IsEnabled = !locked;   // цифровий блок 1–9
+            SudokuGrid.IsEnabled = !locked;  // кліки по клітинках
+
+            BtnSolve.IsEnabled = true;       // Розв'язати — завжди активна
+        }
+
         private void CheckWin()
         {
             if (!_board.IsComplete()) return;
@@ -438,6 +455,8 @@ namespace SudokuApp
                     if (_board[r, c].Value != _board[r, c].SolutionValue) return;
 
             _timer.Stop();
+            _isGameFinished = true;
+            SetBoardLocked(true);
             int m = _elapsedSec / 60, s = _elapsedSec % 60;
 
             string errLine = _totalErrorsMade == 0
@@ -508,7 +527,7 @@ namespace SudokuApp
 
         private void Undo_Click(object sender, RoutedEventArgs e)
         {
-            if (_isRunning) return;
+            if (_isRunning || _isGameFinished) return;
             if (_board.Undo(out int row, out int col, out _))
             {
                 _selRow = row; _selCol = col;
@@ -527,6 +546,7 @@ namespace SudokuApp
 
         private void Notes_Click(object sender, RoutedEventArgs e)
         {
+            if (_isGameFinished) return;
             _notesMode = !_notesMode;
             TxtNotesIcon.Foreground = _notesMode ? BrUser : BrCtrl;
             TxtNotesLabel.Text = _notesMode ? "Примітки: ВКЛ" : "Примітки";
@@ -534,7 +554,7 @@ namespace SudokuApp
 
         private void Hint_Click(object sender, RoutedEventArgs e)
         {
-            if (_isRunning || !_gameState.HasHintsLeft) return;
+            if (_isRunning || _isGameFinished || !_gameState.HasHintsLeft) return;
 
             if (_selRow < 0 || _selCol < 0
                 || _board[_selRow, _selCol].IsFixed
@@ -629,6 +649,9 @@ namespace SudokuApp
             RefreshAll();
             _timer.Stop();
 
+            _isGameFinished = true;
+            SetBoardLocked(true);
+
             string algName = alg == SolverAlgorithm.Backtracking ? "Backtracking" : "CSP";
             MessageBox.Show(
                 $"Судоку розв\u02bcязано автоматично!\n\n" +
@@ -688,6 +711,10 @@ namespace SudokuApp
                 }
 
                 _timer.Stop();
+
+                _isGameFinished = true;
+                SetBoardLocked(true);
+
                 string algName = alg == SolverAlgorithm.Backtracking ? "Backtracking" : "CSP";
                 MessageBox.Show(
                     $"Алгоритм завершив розв\u02bcязання!\n\n" +
@@ -710,6 +737,8 @@ namespace SudokuApp
                         _board.SetCell(step.Row, step.Col, step.Value, addToHistory: false);
 
                     _timer.Stop();
+                    _isGameFinished = true;
+                    SetBoardLocked(true);
 
                     MessageBox.Show(
                         $"Ліміт часу на анімацію вичерпано (2 хвилини)!\n\n" +

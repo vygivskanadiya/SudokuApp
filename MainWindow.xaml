@@ -31,7 +31,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
         <Style x:Key="DarkPinkHoverBtn" TargetType="Button">
             <Setter Property="Background" Value="#D81B60"/>
             <Setter Property="Foreground" Value="White"/>
@@ -54,7 +53,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
         <Style x:Key="MenuBigBtn" TargetType="Button">
             <Setter Property="Background" Value="#E91E63"/>
             <Setter Property="Foreground" Value="White"/>
@@ -79,7 +77,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
         <Style x:Key="DiffBtn" TargetType="Button">
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="Bold"/>
@@ -103,7 +100,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
         <Style x:Key="ModeRadio" TargetType="RadioButton">
             <Setter Property="Margin" Value="0,0,6,0"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -126,9 +122,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
         <Style x:Key="AlgoRadio" TargetType="RadioButton" BasedOn="{StaticResource ModeRadio}"/>
-
         <Style x:Key="CtrlBtn" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -138,18 +132,22 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}" CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ContentPresenter x:Name="Content" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter Property="Background" Value="#FCE4EC"/>
                             </Trigger>
+
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Content" Property="Opacity" Value="0.3"/>
+                            </Trigger>
+
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
-
         <Style x:Key="BackMenuBtn" TargetType="Button">
             <Setter Property="Background" Value="#FCE4EC"/>
             <Setter Property="Foreground" Value="#880E4F"/>
@@ -176,6 +174,7 @@
     </Window.Resources>
 
     <Grid>
+
         <Grid x:Name="PanelMenu" Background="#FFF0F5" Visibility="Visible">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="36,40,36,36">
@@ -213,7 +212,7 @@
                                     <TextBlock Text="Мета" FontWeight="SemiBold"
                                                Foreground="#C2185B" FontSize="13" Margin="0,0,0,5"/>
                                     <TextBlock TextWrapping="Wrap" Foreground="#555" FontSize="13" LineHeight="20">
-                                        Заповніть сітку 9×9 цифрами від 1 до 9 так, щоб кожна цифра зустрічалась рівно один раз у кожному рядку, стовпці та блоці 3×3.
+Заповніть сітку 9×9 цифрами від 1 до 9 так, щоб кожна цифра зустрічалась рівно один раз у кожному рядку, стовпці та блоці 3×3.
                                     </TextBlock>
                                 </StackPanel>
                             </Border>
@@ -223,10 +222,10 @@
                                     <TextBlock Text="Основні правила" FontWeight="SemiBold"
                                                Foreground="#C2185B" FontSize="13" Margin="0,0,0,8"/>
                                     <TextBlock TextWrapping="Wrap" Foreground="#555" FontSize="13" LineHeight="22">
-                                        1.  Кожен рядок містить цифри 1–9 без повторень.
-                                        2.  Кожен стовпець містить цифри 1–9 без повторень.
-                                        3.  Кожен блок 3×3 містить цифри 1–9 без повторень.
-                                        4.  Темні клітинки — початкові (незмінні). Білі — ваші.
+1.  Кожен рядок містить цифри 1–9 без повторень.
+2.  Кожен стовпець містить цифри 1–9 без повторень.
+3.  Кожен блок 3×3 містить цифри 1–9 без повторень.
+4.  Темні клітинки — початкові (незмінні). Білі — ваші.
                                     </TextBlock>
                                 </StackPanel>
                             </Border>
@@ -236,9 +235,9 @@
                                     <TextBlock Text="Керування" FontWeight="SemiBold"
                                                Foreground="#C2185B" FontSize="13" Margin="0,0,0,8"/>
                                     <TextBlock TextWrapping="Wrap" Foreground="#555" FontSize="13" LineHeight="22">
-                                        Скасувати хід        Підказка (3 шт.)
-                                        Очистити клітинку    Авторозв'язання
-                                        Режим приміток       Навігація
+Скасувати хід        Підказка (3 шт.)
+Очистити клітинку    Авторозв'язання
+Режим приміток       Навігація
                                     </TextBlock>
                                 </StackPanel>
                             </Border>
@@ -273,9 +272,9 @@
                                     <TextBlock Text=" Обмеження анімації" FontWeight="SemiBold"
                                                Foreground="#C2185B" FontSize="13" Margin="0,0,0,8"/>
                                     <TextBlock TextWrapping="Wrap" Foreground="#555" FontSize="13" LineHeight="22">
-                                        У покроковому режимі анімація автоматично зупиняється після 2 хвилин.
-                                        Якщо алгоритм має забагато кроків (наприклад, Backtracking на складному рівні), програма пропускає залишок анімації та одразу відображає фінальний результат — щоб не змушувати вас чекати.
-                                        Статистика (кроки, відкати, час обчислення) залишається точною.
+У покроковому режимі анімація автоматично зупиняється після 2 хвилин.
+Якщо алгоритм має забагато кроків (наприклад, Backtracking на складному рівні), програма пропускає залишок анімації та одразу відображає фінальний результат — щоб не змушувати вас чекати.
+Статистика (кроки, відкати, час обчислення) залишається точною.
                                     </TextBlock>
                                 </StackPanel>
                             </Border>
@@ -423,7 +422,7 @@
                 <Border.Effect>
                     <DropShadowEffect Color="#F8BBD0" BlurRadius="10" ShadowDepth="1" Opacity="0.4"/>
                 </Border.Effect>
-                <UniformGrid Columns="5">
+                <UniformGrid x:Name="CtrlPanel" Columns="5">
                     <Button x:Name="BtnUndo"  Style="{StaticResource CtrlBtn}" Click="Undo_Click">
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                             <TextBlock Text="&#x21A9;" FontSize="24" HorizontalAlignment="Center" Foreground="#880E4F"/>
